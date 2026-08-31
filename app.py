@@ -2,7 +2,7 @@ import math
 import json
 import gradio as gr
 
-# 1. المعادلات الأساسية
+# 1. الدوال السريرية وحسابات الوزن
 def calculate_ibw(gender: str, height_cm: float) -> float:
     height_inches = height_cm / 2.54
     over_60_inches = max(0.0, height_inches - 60)
@@ -17,9 +17,9 @@ def calculate_abw(actual_weight: float, ibw: float) -> float:
 def calculate_bsa(height_cm: float, weight_kg: float) -> float:
     return math.sqrt((height_cm * weight_kg) / 3600)
 
-# 2. منطق التوصيات السريرية للأدوية (Clinical Decision Support)
+# 2. منطق دعم القرار السريري للأدوية (CDSS)
 def get_drug_dosing(crcl: float) -> dict:
-    # Vancomycin
+    # Vancomycin Dosing
     if crcl > 50:
         vanco = "15-20 mg/kg q8-12h (Normal renal function)"
     elif 20 <= crcl <= 50:
@@ -27,7 +27,7 @@ def get_drug_dosing(crcl: float) -> dict:
     else:
         vanco = "Dose based on TDM levels (Severe impairment)"
 
-    # Rivaroxaban (AFib dosing reference)
+    # Rivaroxaban (NVAF Dosing)
     if crcl > 50:
         riva = "20 mg once daily with evening meal"
     elif 15 <= crcl <= 50:
@@ -35,7 +35,7 @@ def get_drug_dosing(crcl: float) -> dict:
     else:
         riva = "Avoid use or use with extreme caution (CrCl < 15)"
 
-    # Enoxaparin (Treatment dosing reference)
+    # Enoxaparin (Therapeutic Dosing)
     if crcl >= 30:
         enoxa = "1 mg/kg every 12 hours OR 1.5 mg/kg once daily"
     else:
@@ -47,6 +47,7 @@ def get_drug_dosing(crcl: float) -> dict:
         "Enoxaparin": enoxa
     }
 
+# 3. الدالة الرئيسية للحسابات والتقييم
 def calculate_clinical_support(gender, age, weight_kg, height_cm, scr):
     if scr <= 0 or age <= 0 or height_cm <= 0 or weight_kg <= 0:
         return "خطأ: جميع المدخلات الرقمية يجب أن تكون أكبر من الصفر."
@@ -80,7 +81,7 @@ def calculate_clinical_support(gender, age, weight_kg, height_cm, scr):
     }
     return json.dumps(res, indent=4, ensure_ascii=False)
 
-# 3. بناء الواجهة
+# 4. واجهة Gradio
 interface = gr.Interface(
     fn=calculate_clinical_support,
     inputs=[
@@ -95,4 +96,5 @@ interface = gr.Interface(
     description="أداة دعم القرار السريري لحساب الكرياتينين وضبط جرعات الفانكومايسين، الريفاروكسابان، والإنوكسابارين."
 )
 
-interface.launch(share=True)
+if __name__ == "__main__":
+    interface.launch(share=True)
