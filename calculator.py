@@ -20,9 +20,28 @@ def calculate_bsa(height_cm: float, weight_kg: float) -> float:
     """حساب مساحة سطح الجسم (BSA) باستخدام معادلة Mosteller."""
     return math.sqrt((height_cm * weight_kg) / 3600)
 
+def get_vancomycin_dosing_recommendation(crcl: float) -> dict:
+    """
+    التوصية السريرية الأولية لجرعة دواء Vancomycin استناداً إلى تصفية الكرياتينين (CrCl).
+    """
+    if crcl > 50:
+        interval = "Every 8 to 12 hours"
+        note = "Normal renal function dosing. Target trough monitoring recommended."
+    elif 20 <= crcl <= 50:
+        interval = "Every 24 hours"
+        note = "Moderate renal impairment. Extended dosing interval required."
+    else:
+        interval = "Dose based on TDM (Therapeutic Drug Monitoring) levels"
+        note = "Severe renal impairment. Consider loading dose and check serum levels before redosing."
+
+    return {
+        "Recommended_Interval": interval,
+        "Clinical_Note": note
+    }
+
 def calculate_crcl(gender: str, age: int, weight_kg: float, height_cm: float, scr: float) -> dict:
     """
-    حساب تصفية الكرياتينين (CrCl) مع التحديد التلقائي للوزن الأنسب.
+    حساب تصفية الكرياتينين (CrCl) مع التحديد التلقائي للوزن الأنسب وربطه بتوصيات الجرعات.
     """
     if scr <= 0 or age <= 0 or height_cm <= 0 or weight_kg <= 0:
         raise ValueError("جميع المدخلات الرقمية يجب أن تكون أكبر من الصفر.")
@@ -49,18 +68,22 @@ def calculate_crcl(gender: str, age: int, weight_kg: float, height_cm: float, sc
     else:
         crcl_final = crcl_base
 
+    # جلب التوصية السريرية لدواء Vancomycin
+    vanco_dosing = get_vancomycin_dosing_recommendation(crcl_final)
+
     return {
         "CrCl_mL_min": round(crcl_final, 2),
         "IBW_kg": round(ibw, 2),
         "BSA_m2": round(bsa, 2),
         "Weight_Used_Type": weight_type,
-        "Weight_Used_kg": round(selected_weight, 2)
+        "Weight_Used_kg": round(selected_weight, 2),
+        "Vancomycin_Dosing": vanco_dosing
     }
 
 # مثال للتجربة المباشرة:
 if __name__ == "__main__":
     # مريض ذكر، 65 سنة، وزنه 95 كجم، طوله 175 سم، الكرياتينين 1.4 mg/dL
     result = calculate_crcl(gender="male", age=65, weight_kg=95, height_cm=175, scr=1.4)
-    print("--- نتائج الحاسبة السريرية v1.1 ---")
+    print("--- نتائج الحاسبة السريرية v1.2 ---")
     for key, value in result.items():
         print(f"{key}: {value}")
