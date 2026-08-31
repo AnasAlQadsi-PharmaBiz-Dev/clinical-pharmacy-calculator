@@ -1,88 +1,33 @@
-# Clinical Pharmacy Calculator (v1.2) 🧪
+# 🧪 Multi-Drug Clinical Pharmacy Calculator (v1.3)
+An interactive Clinical Decision Support System (CDSS) built with Python and Gradio to compute **Creatinine Clearance (CrCl)** using the Cockcroft-Gault equation and provide patient-specific dosing recommendations for multiple high-alert medications.
+---
+## 🌟 Key Features
+- **Smart Weight Selection:** Automatically detects Obesity ($Actual > 1.2 \times IBW$) or Underweight status to use Adjusted Body Weight ($ABW$) or Actual Weight ($ABW$) accordingly.
+- **BSA & IBW Calculation:** Computes Ideal Body Weight (Devine Formula) and Body Surface Area (Mosteller Formula).
+- **Multi-Drug Dosing Support:**
+  - **Vancomycin:** Interval guidance based on renal excretion levels.
+  - **Rivaroxaban (DOAC):** Dose adjustments for NVAF based on renal thresholds.
+  - **Enoxaparin (LMWH):** Therapeutic dosing guidelines for normal vs. impaired renal clearance ($CrCl < 30\text{ mL/min}$).
+- **Interactive Web Interface:** User-friendly GUI powered by **Gradio**.
+---
+## 📊 Clinical Logic Flow
 
-حاسبة سريرية متقدمة مصممة بلغة Python لحساب تصفية الكرياتينين (CrCl) بدقة، مع التحديد التلقائي للوزن الأنسب (الفعلي، المثالي، أو المعدل)، وحساب مساحة سطح الجسم (BSA)، وتوصيات سريرية أولية لضبط جرعة دواء الفانكومايسين (Vancomycin).
+| Parameter | Formula / Condition |
+| :--- | :--- |
+| **IBW (Male)** | $50 + 2.3 \times (Height\_in - 60)$ |
+| **IBW (Female)** | $45.5 + 2.3 \times (Height\_in - 60)$ |
+| **ABW** | $IBW + 0.4 \times (Actual - IBW)$ |
+| **CrCl** | $\frac{(140 - Age) \times Weight}{72 \times SCr} \times [0.85\text{ if female}]$ |
 
 ---
+## 🚀 How to Run
+1. Clone the repository:
+   ```bash
+   git clone [https://github.com/YOUR_USERNAME/clinical-pharmacy-calculator.git](https://github.com/YOUR_USERNAME/clinical-pharmacy-calculator.git)
+2. Install requirements:
+pip install gradio
+3. Run the application:
+python app.py
 
-## 🔬 المعادلات السريرية المعتمدة (Clinical Formulas)
-
-### 1. تصفية الكرياتينين (Cockcroft-Gault Equation)
-- **الذكور:**
-  $$\text{CrCl} = \frac{(140 - \text{Age}) \times \text{Weight}}{72 \times \text{SCr}}$$
-- **الإناث:**
-  $$\text{CrCl} = \text{CrCl (Male)} \times 0.85$$
-
----
-
-### 2. معايير اختيار الوزن (Weight Selection Logic)
-تختار الحاسبة تلقائياً نوع الوزن المناسب بناءً على الحالة السريرية للمريض:
-- **نقص الوزن ($Actual < IBW$):** استخدام الوزن الفعلي ($Actual\ Weight$).
-- **الوزن الطبيعي ($IBW \le Actual \le 1.2 \times IBW$):** استخدام الوزن المثالي ($IBW$).
-- **السمنة ($Actual > 1.2 \times IBW$):** استخدام الوزن المعدل ($ABW$).
-
----
-
-### 3. الوزن المثالي (Devine Formula)
-- **الذكور:** $50 + 2.3 \times (\text{Height in inches} - 60)$
-- **الإناث:** $45.5 + 2.3 \times (\text{Height in inches} - 60)$
-
----
-
-### 4. الوزن المعدل (Adjusted Body Weight)
-$$\text{ABW} = \text{IBW} + 0.4 \times (\text{Actual Weight} - \text{IBW})$$
-
----
-
-### 5. مساحة سطح الجسم (Mosteller Formula)
-$$\text{BSA} = \sqrt{\frac{\text{Height (cm)} \times \text{Weight (kg)}}{3600}}$$
-
----
-
-## 💊 توصيات جرعات الفانكومايسين (Vancomycin Dosing v1.2)
-
-| تصفية الكرياتينين (CrCl) | الفترة البينية الموصى بها (Interval) | الملاحظات السريرية (Clinical Notes) |
-| :--- | :--- | :--- |
-| **$> 50 \text{ mL/min}$** | كل 8 - 12 ساعة | وظائف كلى طبيعية، يوصى بمتابعة المستوى الأدنى للدواء (Trough Level). |
-| **$20 - 50 \text{ mL/min}$** | كل 24 ساعة | قصور كلي متوسط، يتطلب تمديد الفترة البينية للجرعات. |
-| **$< 20 \text{ mL/min}$** | حسب نتائج TDM | قصور كلي شديد، النظر في إعطاء جرعة تحميلية ومراقبة التركيز في الدم. |
-
----
-
-## 💻 طريقة الاستخدام (Usage Example)
-
-```python
-from calculator import calculate_crcl
-
-# مدخلات الحالة السريرية
-result = calculate_crcl(
-    gender="male",
-    age=65,
-    weight_kg=95,
-    height_cm=175,
-    scr=1.4
-)
-
-print(result)
-
-📋 المخرجات النموذجية (Sample Output)
-{
-  "CrCl_mL_min": 52.48,
-  "IBW_kg": 70.3,
-  "BSA_m2": 2.15,
-  "Weight_Used_Type": "Adjusted Body Weight (Obesity)",
-  "Weight_Used_kg": 80.18,
-  "Vancomycin_Dosing": {
-    "Recommended_Interval": "Every 8 to 12 hours",
-    "Clinical_Note": "Normal renal function dosing. Target trough monitoring recommended."
-  }
-}
-
-تنويه: هذه الأداة مخصصة للمساعدة التعليمية والدعم السريري المبدئي، ولا تغني عن التقييم الطبي المباشر.
-
----
-
-### **طريقة التنسيق والحفظ:**
-1. انسخ الكود أعلاه كاملاً.
-2. ألصقه في محرر ملف **`README.md`** عبر GitHub.
-3. اضغط على الزر الأخضر **`Commit changes`**.
-
+👨‍⚕️ Author
+Developed by Anas Ahmad — Pharmacist & Business Development Specialist | HealthTech & AI Solutions.
